@@ -1,0 +1,102 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [input, setInput] = useState('');
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState('');
+  const [visibleSections, setVisibleSections] = useState(['characters', 'numbers', 'highestAlphabet']);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setResponse(null);
+
+    try {
+      const parsedInput = JSON.parse(input);
+      const res = await axios.post('https://your-backend-url.com/bfhl', parsedInput);
+      setResponse(res.data);
+    } catch (err) {
+      setError('Invalid JSON or API error');
+    }
+  };
+
+  const handleSectionToggle = (section) => {
+    setVisibleSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section) 
+        : [...prev, section]
+    );
+  };
+
+  return (
+    <div className="App">
+      <h1>AP21110010583</h1>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder='Enter JSON (e.g., {"data": ["A","C","z"]})'
+        />
+        <button type="submit">Submit</button>
+      </form>
+
+      {error && <p className="error">{error}</p>}
+
+      {response && (
+        <div>
+          <h2>Response:</h2>
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={visibleSections.includes('characters')}
+                onChange={() => handleSectionToggle('characters')}
+              />
+              Characters
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={visibleSections.includes('numbers')}
+                onChange={() => handleSectionToggle('numbers')}
+              />
+              Numbers
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={visibleSections.includes('highestAlphabet')}
+                onChange={() => handleSectionToggle('highestAlphabet')}
+              />
+              Highest Alphabet
+            </label>
+          </div>
+
+          {visibleSections.includes('characters') && (
+            <div>
+              <h3>Characters:</h3>
+              <p>{response.alphabets.join(', ')}</p>
+            </div>
+          )}
+
+          {visibleSections.includes('numbers') && (
+            <div>
+              <h3>Numbers:</h3>
+              <p>{response.numbers.join(', ')}</p>
+            </div>
+          )}
+
+          {visibleSections.includes('highestAlphabet') && (
+            <div>
+              <h3>Highest Alphabet:</h3>
+              <p>{response.highest_alphabet.join(', ')}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
